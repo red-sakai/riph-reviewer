@@ -934,6 +934,42 @@ export const identificationQuestions: IdentificationQuestion[] = [
     question: "Ang pinuno ng mga rebeldeng sundalo at manggagawa na nag-alsa sa loob ng Cavite Arsenal noong gabi ng Enero 20, 1872.",
     answer: "Sergeant La Madrid",
   },
+  {
+    id: 41,
+    type: "identification",
+    question: "Sila ay kinikilala bilang pari (babae/lalaki) ng mga tagalog.",
+    answer: "Catalonan",
+  },
+  {
+    id: 42,
+    type: "identification",
+    question: "Sinabi ng tagapagkwento ni Magellan na sa lalawigan ng _______ ay nakakita sila ng maraming hayop tulad ng mga aso at ibon.",
+    answer: "Cebu",
+  },
+  {
+    id: 43,
+    type: "identification",
+    question: "Ito naman ang tawag sa may kapangyarihan gumawa ng gamot upang lisanin ang may-asawa ang kanyang kabiyak o kamuhian sya ng kanyang asawa na hahantong sa kanilang hiwalayan.",
+    answer: "Manyisalat",
+  },
+  {
+    id: 44,
+    type: "identification",
+    question: "Ang mga anitong sina _______ at _______ ay kinikilala bilang patron ng mayabong na lupa at sa paghahanap ng asawa.",
+    answer: "Lacapati Indianale",
+  },
+  {
+    id: 45,
+    type: "identification",
+    question: "Siya ang tagapag-salin sa pagitan ng mga natibo at mga dayuhan.",
+    answer: "Enrique",
+  },
+  {
+    id: 46,
+    type: "identification",
+    question: "Ang manununggul anthropomorphic jar ay natagpuan sa ___________.",
+    answer: "Palawan",
+  },
 ]
 
 export const trueFalseQuestions: TrueFalseQuestion[] = [
