@@ -38,6 +38,7 @@ export default function Reviewer() {
   const [showAnswer, setShowAnswer] = useState(false)
   const [shuffled, setShuffled] = useState(false)
   const [questionOrder, setQuestionOrder] = useState<number[]>([])
+  const [tfCorrection, setTfCorrection] = useState("")
 
   const section = sections[sectionIdx]
   const qs = questionOrder.length > 0 ? questionOrder.map(i => section.questions[i]) : section.questions
@@ -53,6 +54,7 @@ export default function Reviewer() {
     setAnswers({})
     setShowAnswer(false)
     setShuffled(shuffle)
+    setTfCorrection("")
     if (shuffle) {
       setQuestionOrder(shuffleArray(sections[idx].questions.map((_, i) => i)))
     } else {
@@ -70,14 +72,27 @@ export default function Reviewer() {
     if (currentQ < totalQuestions - 1) {
       setCurrentQ(prev => prev + 1)
       setShowAnswer(false)
+      setTfCorrection("")
     } else {
       setScreen("results")
+    }
+  }
+
+  function handleEnterPress() {
+    if (userAnswer) {
+      const isCorrect = isAnswerCorrect(question, userAnswer)
+      if (isCorrect) {
+        handleNext()
+      } else {
+        setShowAnswer(true)
+      }
     }
   }
 
   function goToQuestion(idx: number) {
     setCurrentQ(idx)
     setShowAnswer(false)
+    setTfCorrection("")
   }
 
   function restart() {
@@ -111,7 +126,7 @@ export default function Reviewer() {
             <div className="relative z-10">
               <p className="text-sm font-medium text-emerald-100">PART I</p>
               <p className="text-2xl font-bold mt-1">Multiple Choice</p>
-              <p className="text-sm text-emerald-100 mt-2">40 questions — Piliin ang tamang sagot</p>
+              <p className="text-sm text-emerald-100 mt-2">{sections[0].questions.length} questions — Piliin ang tamang sagot</p>
             </div>
           </button>
 
@@ -122,7 +137,7 @@ export default function Reviewer() {
             <div className="relative z-10">
               <p className="text-sm font-medium text-blue-100">PART II</p>
               <p className="text-2xl font-bold mt-1">Identification</p>
-              <p className="text-sm text-blue-100 mt-2">40 questions — Isulat ang tamang sagot</p>
+              <p className="text-sm text-blue-100 mt-2">{sections[1].questions.length} questions — Isulat ang tamang sagot</p>
             </div>
           </button>
 
@@ -133,7 +148,7 @@ export default function Reviewer() {
             <div className="relative z-10">
               <p className="text-sm font-medium text-amber-100">PART III</p>
               <p className="text-2xl font-bold mt-1">Tama o Mali</p>
-              <p className="text-sm text-amber-100 mt-2">20 questions — Tukuyin kung Tama o Mali</p>
+              <p className="text-sm text-amber-100 mt-2">{sections[2].questions.length} questions — Tukuyin kung Tama o Mali</p>
             </div>
           </button>
         </div>
@@ -234,6 +249,7 @@ export default function Reviewer() {
               <button
                 key={choice}
                 onClick={() => handleAnswer(choice)}
+                onKeyDown={e => { if (e.key === "Enter" && isSelected && !showAnswer) handleEnterPress() }}
                 className={classNames(
                   "flex items-center gap-3 rounded-xl border-2 px-5 py-3.5 text-left text-sm font-medium transition-all",
                   "hover:border-emerald-300 hover:bg-emerald-50",
@@ -261,11 +277,14 @@ export default function Reviewer() {
           <input
             type="text"
             value={userAnswer}
-            onChange={e => handleAnswer(e.target.value)}
+            onChange={e => { if (!showAnswer) handleAnswer(e.target.value) }}
             placeholder="I-type ang iyong sagot..."
-            className="w-full rounded-xl border-2 border-zinc-200 px-5 py-3.5 text-sm font-medium text-zinc-800 outline-none transition-all focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100"
+            className={classNames(
+              "w-full rounded-xl border-2 border-zinc-200 px-5 py-3.5 text-sm font-medium text-zinc-800 outline-none transition-all focus:border-emerald-400 focus:ring-2 focus:ring-emerald-100",
+              showAnswer && "bg-zinc-50 text-zinc-600 cursor-default"
+            )}
             disabled={showAnswer}
-            onKeyDown={e => { if (e.key === "Enter" && !showAnswer) setShowAnswer(true) }}
+            onKeyDown={e => { if (e.key === "Enter") handleEnterPress() }}
           />
           {showAnswer && (
             <p className="text-sm text-emerald-600 font-medium">
@@ -280,29 +299,70 @@ export default function Reviewer() {
       const tf = question as TrueFalseQuestion
       const options = ["Tama", "Mali"]
       return (
-        <div className="flex gap-3">
-          {options.map(opt => {
-            const isSelected = userAnswer === opt
-            const isAnswer = showAnswer && ((opt === "Tama" && tf.isCorrect) || (opt === "Mali" && !tf.isCorrect))
-            const isWrong = showAnswer && isSelected && ((opt === "Tama" && !tf.isCorrect) || (opt === "Mali" && tf.isCorrect))
-            return (
-              <button
-                key={opt}
-                onClick={() => handleAnswer(opt)}
-                className={classNames(
-                  "flex-1 rounded-xl border-2 px-6 py-4 text-center text-lg font-bold transition-all",
-                  "hover:border-emerald-300 hover:bg-emerald-50",
-                  isSelected && !showAnswer && "border-emerald-500 bg-emerald-50 text-emerald-700",
-                  isAnswer && "border-emerald-500 bg-emerald-50 text-emerald-700",
-                  isWrong && "border-red-400 bg-red-50 text-red-600",
-                  !isSelected && !isAnswer && !isWrong && "border-zinc-200 bg-white text-zinc-700"
-                )}
+        <div>
+          <div className="flex gap-3">
+            {options.map(opt => {
+              const isSelected = userAnswer === opt
+              const isCorrectAnswer = (opt === "Tama" && tf.isCorrect) || (opt === "Mali" && !tf.isCorrect)
+              const isAnswer = showAnswer && isCorrectAnswer
+              const isWrong = showAnswer && isSelected && !isCorrectAnswer
+              const shouldHighlightCorrect = showAnswer && isCorrectAnswer
+              return (
+                <button
+                  key={opt}
+                  onClick={() => handleAnswer(opt)}
+                  onKeyDown={e => { if (e.key === "Enter" && !showAnswer && isSelected) handleEnterPress() }}
+                  className={classNames(
+                    "flex-1 rounded-xl border-2 px-6 py-4 text-center text-lg font-bold transition-all",
+                    "hover:border-emerald-300 hover:bg-emerald-50",
+                    isSelected && !showAnswer && "border-emerald-500 bg-emerald-50 text-emerald-700",
+                    isAnswer && "border-emerald-500 bg-emerald-50 text-emerald-700",
+                    isWrong && "border-red-400 bg-red-50 text-red-600",
+                    shouldHighlightCorrect && !isSelected && "border-emerald-500 bg-emerald-50 text-emerald-700 ring-2 ring-emerald-200",
+                    !isSelected && !shouldHighlightCorrect && !isWrong && "border-zinc-200 bg-white text-zinc-700"
+                  )}
+                  disabled={showAnswer}
+                >
+                  {opt}
+                </button>
+              )
+            })}
+          </div>
+          {!tf.isCorrect && (showAnswer || userAnswer === "Mali") && (
+            <div className="mt-4 space-y-2">
+              <p className="text-sm text-amber-600 font-medium">
+                Iwasto ang sinalungguhitang salita o kataga:
+              </p>
+              <input
+                type="text"
+                value={showAnswer ? (tf.correctTerm || "") : tfCorrection}
+                onChange={e => { if (!showAnswer) setTfCorrection(e.target.value) }}
                 disabled={showAnswer}
-              >
-                {opt}
-              </button>
-            )
-          })}
+                className={classNames(
+                  "w-full rounded-xl border-2 px-4 py-2 text-sm font-medium outline-none transition-all",
+                  showAnswer
+                    ? tfCorrection.trim().toLowerCase() === (tf.correctTerm || "").trim().toLowerCase()
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-700"
+                      : "border-red-200 bg-red-50 text-red-700"
+                    : "border-amber-200 bg-white text-amber-700 placeholder:text-amber-300 focus:border-amber-400 focus:ring-2 focus:ring-amber-100"
+                )}
+                placeholder="I-type ang tamang termino..."
+                onKeyDown={e => { if (e.key === "Enter" && userAnswer) handleEnterPress() }}
+              />
+              {showAnswer && (
+                <p className={classNames(
+                  "text-sm font-medium",
+                  tfCorrection.trim().toLowerCase() === (tf.correctTerm || "").trim().toLowerCase()
+                    ? "text-emerald-600"
+                    : "text-red-600"
+                )}>
+                  {tfCorrection.trim().toLowerCase() === (tf.correctTerm || "").trim().toLowerCase()
+                    ? "✓ Tama ang iyong sagot!"
+                    : `✗ Mali. Ang tamang sagot ay: ${tf.correctTerm}`}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )
     }
@@ -340,19 +400,35 @@ export default function Reviewer() {
       </div>
 
       <div className="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
-        <p className="text-base leading-relaxed text-zinc-800 mb-6">
-          {question.type === "true-false"
-            ? (question as TrueFalseQuestion).statement
-            : question.question}
-        </p>
+        <div className="text-base leading-relaxed text-zinc-800 mb-6">
+          {question.type === "true-false" ? (
+            (() => {
+              const tf = question as TrueFalseQuestion
+              const { statement, highlightedTerm } = tf
+              // Escape special regex characters for safe regex creation
+              const escapedTerm = highlightedTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+              // Use word boundary to match exact term
+              const regex = new RegExp(`\\b${escapedTerm}\\b`, 'g')
+              const matches = statement.match(regex) || []
+              const parts = statement.split(regex)
+              
+              return (
+                <p>
+                  {parts.map((part, i) => (
+                    <span key={i}>
+                      {part}
+                      {i < matches.length && <strong className="bg-yellow-200 px-1 rounded">{matches[i]}</strong>}
+                    </span>
+                  ))}
+                </p>
+              )
+            })()
+          ) : (
+            question.question
+          )}
+        </div>
 
         {renderChoices()}
-
-        {showAnswer && question.type === "true-false" && !(question as TrueFalseQuestion).isCorrect && (
-          <p className="mt-3 text-sm text-amber-600 font-medium">
-            Iwasto: {(question as TrueFalseQuestion).correctTerm}
-          </p>
-        )}
       </div>
 
       <div className="flex items-center justify-between mt-6">
