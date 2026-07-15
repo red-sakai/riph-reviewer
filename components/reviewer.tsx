@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { sections, type MultipleChoiceQuestion, type IdentificationQuestion, type TrueFalseQuestion, type Question } from "@/data/questions"
 
-type SectionIndex = 0 | 1 | 2
+type SectionIndex = 0 | 1 | 2 | 3
 type AppScreen = "menu" | "quiz" | "results"
 
 function classNames(...classes: (string | boolean | undefined | null)[]) {
@@ -151,6 +151,17 @@ export default function Reviewer() {
               <p className="text-sm text-amber-100 mt-2">{sections[2].questions.length} questions — Tukuyin kung Tama o Mali</p>
             </div>
           </button>
+
+          <button
+            onClick={() => startSection(3, false)}
+            className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-purple-500 to-purple-700 p-6 text-left text-white shadow-lg transition-all hover:scale-[1.02] active:scale-[0.98]"
+          >
+            <div className="relative z-10">
+              <p className="text-sm font-medium text-purple-100">EXTRA</p>
+              <p className="text-2xl font-bold mt-1">Multiple Choice</p>
+              <p className="text-sm text-purple-100 mt-2">{sections[3].questions.length} questions — Piliin ang tamang sagot</p>
+            </div>
+          </button>
         </div>
 
         <div className="mt-8 flex gap-3">
@@ -171,6 +182,12 @@ export default function Reviewer() {
             className="rounded-xl border border-zinc-200 px-5 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900"
           >
             Shuffle TF
+          </button>
+          <button
+            onClick={() => startSection(3, true)}
+            className="rounded-xl border border-zinc-200 px-5 py-2.5 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-400 dark:hover:bg-zinc-900"
+          >
+            Shuffle Extra
           </button>
         </div>
       </div>
